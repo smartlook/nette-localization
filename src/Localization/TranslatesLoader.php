@@ -37,7 +37,7 @@ class TranslatesLoader
 			$keyParts[] = $this->getLastChange($section, $lang, $defaultLang);
 		}
 
-		$key = implode('_', $keyParts);
+		$key = \implode('_', $keyParts);
 		return $this->cache->load($key, function () use ($section, $lang, $defaultLang): array {
 			return $this->getTranslates($section, $lang, $defaultLang);
 		});
@@ -48,9 +48,9 @@ class TranslatesLoader
 	{
 		$translates = $this->storage->getTranslates($section, $lang);
 		if ($defaultLang && $defaultLang !== $lang) {
-			$translates = array_merge($this->storage->getTranslates($section, $defaultLang), $translates);
+			$translates = \array_merge($this->storage->getTranslates($section, $defaultLang), $translates);
 		}
-		ksort($translates);
+		\ksort($translates);
 		return $translates;
 	}
 
@@ -58,7 +58,7 @@ class TranslatesLoader
 	private function getLastChange(string $section, string $lang, ?string $defaultLang = null): int
 	{
 		if ($defaultLang !== null) {
-			return max($this->storage->getLastChange($section, $lang), $this->storage->getLastChange($section, $defaultLang));
+			return \max($this->storage->getLastChange($section, $lang), $this->storage->getLastChange($section, $defaultLang));
 		}
 
 		return $this->storage->getLastChange($section, $lang);

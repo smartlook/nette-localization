@@ -62,11 +62,10 @@ class Translator implements ITranslator
 
 	/**
 	 * Translates the given string. NEPODPORUJE PLURAL
-	 * @param  string $key translation string
-	 * @param  mixed $args argument (first of arguments)
-	 * @return string
+	 * @param string $key translation string
+	 * @param mixed $parameters argument (first of arguments)
 	 */
-	public function translate($key, $args = null)
+	public function translate($key, ...$parameters): string
 	{
 		if (isset($this->dictionary[$key])) {
 			$message = $this->dictionary[$key];
@@ -76,16 +75,10 @@ class Translator implements ITranslator
 			$message = $key;
 		}
 
-		if ($args !== null) {
-			if (is_array($args)) {
-				$message = preg_replace_callback('/\{([^}]+)\}/', function ($matches) use ($args) {
-					return array_key_exists($matches[1], $args) ? $args[$matches[1]] : $matches[0];
-				}, $message);
-			} else {
-				$args = func_get_args();
-				array_shift($args);
-				$message = vsprintf($message, $args);
-			}
+		if ($parameters !== null) {
+			$message = preg_replace_callback('/\{([^}]+)\}/', function ($matches) use ($parameters) {
+				return array_key_exists($matches[1], $parameters) ? $parameters[$matches[1]] : $matches[0];
+			}, $message);
 		}
 
 		if (count($this->parameters) > 0) {

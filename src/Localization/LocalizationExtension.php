@@ -3,48 +3,48 @@
 namespace Smartsupp\Localization;
 
 use Nette\DI\CompilerExtension;
-use Nette\Utils\Validators;
+use Nette\Schema\Expect;
+use Nette\Schema\Schema;
 
 class LocalizationExtension extends CompilerExtension
 {
 
-	public $defaults = [
-		'tempDir' => '%tempDir%/cache/Localization',
-		'translatesDir' => null,
-		'debugMode' => '%debugMode%',
-		'sections' => [],
-		'alias' => [],
-		'parameters' => [],
-		'filters' => [],
-	];
+	public function getConfigSchema(): Schema
+	{
+		return Expect::structure([
+			'translatesDir' => Expect::string(),
+			'debugMode' => Expect::bool(false),
+			'sections' => Expect::array(),
+			'alias' => Expect::array(),
+			'parameters' => Expect::array(),
+			'filters' => Expect::array(),
+		]);
+	}
 
 
 	public function loadConfiguration(): void
 	{
-		$container = $this->getContainerBuilder();
-		$config = $this->getConfig($this->defaults);
+		$builder = $this->getContainerBuilder();
 
-		Validators::assertField($config, 'translatesDir', 'string');
+		$builder->addDefinition($this->prefix('translatesStorage'))
+			->setFactory(DirectoryStorage::class, [$this->config->translatesDir]);
 
-		$container->addDefinition($this->prefix('translatesStorage'))
-			->setFactory(DirectoryStorage::class, [$config['translatesDir']]);
+		$builder->addDefinition($this->prefix('translatesLoader'))
+			->setFactory(TranslatesLoader::class, [$this->config->debugMode]);
 
-		$container->addDefinition($this->prefix('translatesLoader'))
-			->setFactory(TranslatesLoader::class, [$config['debugMode']]);
-
-		$translatorFactory = $container->addDefinition($this->prefix('translatorFactory'))
+		$translatorFactory = $builder->addDefinition($this->prefix('translatorFactory'))
 			->setFactory(TranslatorFactory::class)
-			->addSetup('$defaultSections', [$config['sections']])
-			->addSetup('setParameters', [$config['parameters']]);
+			->addSetup('$defaultSections', [$this->config->sections])
+			->addSetup('setParameters', [$this->config->parameters]);
 
-		if (count($config['alias'])) {
-			foreach ($config['alias'] as $from => $to) {
+		if (\count($this->config->alias)) {
+			foreach ($this->config->alias as $from => $to) {
 				$translatorFactory->addSetup('setAlias', [$from, $to]);
 			}
 		}
 
-		if (count($config['filters'])) {
-			foreach ($config['filters'] as $filter) {
+		if (\count($this->config->filters)) {
+			foreach ($this->config->filters as $filter) {
 				$translatorFactory->addSetup('addFilter', [$filter]);
 			}
 		}

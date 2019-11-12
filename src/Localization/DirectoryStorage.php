@@ -18,13 +18,13 @@ class DirectoryStorage implements ITranslateStorage
 	public function getTranslates(string $section, string $lang): array
 	{
 		$path = $this->dir . '/' . $section . '/' . $lang . '.json';
-		if (!is_file($path)) {
+		if (!\is_file($path)) {
 			return [];
 		}
 
 		$translates = [];
-		$data = json_decode(file_get_contents($path), true);
-		$data = array_filter($data, function ($value) {
+		$data = \json_decode(\file_get_contents($path), true);
+		$data = \array_filter($data, function ($value) {
 			return $value !== '';
 		});
 		$this->expandKeys($translates, $data);
@@ -35,7 +35,7 @@ class DirectoryStorage implements ITranslateStorage
 	public function getLastChange(string $section, string $lang): int
 	{
 		$path = $this->dir . '/' . $section . '/' . $lang . '.json';
-		return is_file($path) ? filemtime($path) : 0;
+		return \is_file($path) ? \filemtime($path) : 0;
 	}
 
 
@@ -45,7 +45,7 @@ class DirectoryStorage implements ITranslateStorage
 	private function expandKeys(array &$translates, array $data, ?string $prefix = null): void
 	{
 		foreach ($data as $key => $value) {
-			if (is_array($value)) {
+			if (\is_array($value)) {
 				$this->expandKeys($translates, $value, $prefix ? "$prefix.$key" : $key);
 			} else {
 				$translates[$prefix ? "$prefix.$key" : $key] = $value;
