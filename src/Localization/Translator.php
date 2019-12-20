@@ -75,18 +75,21 @@ class Translator implements ITranslator
 			$message = $key;
 		}
 
-		if ($parameters !== null) {
-			$message = preg_replace_callback('/\{([^}]+)\}/', function ($matches) use ($parameters) {
-				return array_key_exists($matches[1], $parameters) ? $parameters[$matches[1]] : $matches[0];
-			}, $message);
+		if ($parameters !== null && \count($parameters) === 1) {
+			$namedParams = \end($parameters);
+			if (\is_array($namedParams)) {
+				$message = \preg_replace_callback('/\{([^}]+)\}/', function ($matches) use ($namedParams) {
+					return \array_key_exists($matches[1], $namedParams) ? $namedParams[$matches[1]] : $matches[0];
+				}, $message);
+			}
 		}
 
-		if (count($this->parameters) > 0) {
+		if (\count($this->parameters) > 0) {
 			$message = $this->applyParameters($message);
 		}
 
 		foreach ($this->filters as $filter) {
-			$message = call_user_func_array($filter, [$message, $key]);
+			$message = \call_user_func_array($filter, [$message, $key]);
 		}
 
 		return $message;
@@ -95,10 +98,10 @@ class Translator implements ITranslator
 
 	private function applyParameters(string $string): string
 	{
-		if (strpos($string, '{') === false) {
+		if (\strpos($string, '{') === false) {
 			return $string;
 		}
-		return preg_replace_callback('/\{([^}]+)\}/', function ($matches) {
+		return \preg_replace_callback('/\{([^}]+)\}/', function ($matches) {
 			return isset($this->parameters[$matches[1]]) ? $this->applyParameters($this->parameters[$matches[1]]) : $matches[0];
 		}, $string);
 	}
