@@ -75,13 +75,14 @@ class Translator implements ITranslator
 			$message = $key;
 		}
 
-		if ($parameters !== null && \count($parameters) === 1) {
-			$namedParams = \end($parameters);
-			if (\is_array($namedParams)) {
-				$message = \preg_replace_callback('/\{([^}]+)\}/', function ($matches) use ($namedParams) {
-					return \array_key_exists($matches[1], $namedParams) ? $namedParams[$matches[1]] : $matches[0];
-				}, $message);
-			}
+		$count = \count($parameters);
+		if ($count === 1 && \is_array($parameters[0])) {
+			$namedParams = $parameters[0];
+			$message = \preg_replace_callback('/\{([^}]+)\}/', function ($matches) use ($namedParams) {
+				return \array_key_exists($matches[1], $namedParams) ? $namedParams[$matches[1]] : $matches[0];
+			}, $message);
+		} elseif ($count > 1 || ($count === 1 && $parameters[0] !== null)) {
+			$message = \vsprintf($message, $parameters);
 		}
 
 		if (\count($this->parameters) > 0) {
